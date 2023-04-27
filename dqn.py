@@ -236,7 +236,7 @@ def run():
             model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
             torch.save(q_network.state_dict(), model_path)
 
-            from cleanrl_utils.evals.dqn_eval import evaluate
+            from evals.dqn_eval import evaluate
 
             expected_return = evaluate(
                 model_path,
@@ -255,6 +255,10 @@ def run():
 
             # model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
             model_path = f"results/policy-1288.cleanrl_model"
+
+            if os.path.exists(model_path):
+                model_path = f"results/policy-12345.cleanrl_model"
+
             torch.save(q_network.state_dict(), model_path)
             
  
@@ -262,7 +266,7 @@ def run():
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
         torch.save(q_network.state_dict(), model_path)
         # print(f"model saved to {model_path}")
-        from cleanrl_utils.evals.dqn_eval import evaluate
+        from evals.dqn_eval import evaluate
 
         episodic_returns = evaluate(
             model_path,
