@@ -33,7 +33,7 @@ def evaluate(
         next_obs, _, _, infos = envs.step(actions)
         for info in infos:
             if "episode" in info.keys():
-                print(f"eval_episode={len(episodic_returns)}, episodic_return={info['episode']['r']}")
+                # print(f"eval_episode={len(episodic_returns)}, episodic_return={info['episode']['r']}")
                 episodic_returns += [info["episode"]["r"]]
         obs = next_obs
 

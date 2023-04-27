@@ -120,14 +120,10 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     slope = (end_e - start_e) / duration
     return max(slope * t + start_e, end_e)
 
-
-# if __name__ == "__main__":
 def run():
     args = parse_args()
     run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
-    # if args.track:
-        # import wandb
-
+    
     wandb.init(
         project=args.wandb_project_name,
         entity=args.wandb_entity,
@@ -242,7 +238,7 @@ def run():
                 model_path,
                 make_env,
                 args.env_id,
-                eval_episodes=10,
+                eval_episodes=20000,
                 run_name=f"{run_name}-eval",
                 Model=QNetwork,
                 device=device,
@@ -251,46 +247,14 @@ def run():
                 capture_video=False
             )
             computed = np.mean(expected_return)
-            print(computed)
+            print(f"MC Evaluation: {computed}")
 
             # model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-            model_path = f"results/policy-1288.cleanrl_model"
+            model_path = f"results/policy-{round(computed, 1)}.cleanrl_model"
 
-            if os.path.exists(model_path):
-                model_path = f"results/policy-12345.cleanrl_model"
-
-            torch.save(q_network.state_dict(), model_path)
+            if not os.path.exists(model_path):
+                torch.save(q_network.state_dict(), model_path)
             
- 
-    if args.save_model:
-        model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-        torch.save(q_network.state_dict(), model_path)
-        # print(f"model saved to {model_path}")
-        from evals.dqn_eval import evaluate
-
-        episodic_returns = evaluate(
-            model_path,
-            make_env,
-            args.env_id,
-            eval_episodes=10,
-            run_name=f"{run_name}-eval",
-            Model=QNetwork,
-            device=device,
-            # epsilon=0.05,
-            epsilon=wandb.config.epsilon,
-            capture_video=False
-        )
-
-        for idx, episodic_return in enumerate(episodic_returns):
-            writer.add_scalar("eval/episodic_return", episodic_return, idx)
-
-        if args.upload_model:
-            from cleanrl_utils.huggingface import push_to_hub
-
-            repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
-            repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
-            # push_to_hub(args, episodic_returns, repo_id, "DQN", f"runs/{run_name}", f"videos/{run_name}-eval")
-
     envs.close()
     writer.close()
 
