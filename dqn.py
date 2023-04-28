@@ -92,12 +92,13 @@ sweep_config = {
     "method": "grid", # use grid search
     "metric": {"name": "eval_return", "goal": "maximize"},
     "parameters": {
-        # "epsilon": {"values": [0.1, 0.01, 0.001]}
-        "epsilon": {"values": [0.05]}
+        # "epsilon": {"values": [0.05]}
+        "epsilon": {"values": [0, 0.2, 0.4, 0.8]}
     }
 }
 
-sweep_id = wandb.sweep(sweep_config, project="my-project")
+# sweep_id = wandb.sweep(sweep_config, project="my-project")
+sweep_id = wandb.sweep(sweep_config, project="parallel-task-10")
 
 
 # ALGO LOGIC: initialize agent here:
@@ -121,6 +122,7 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     return max(slope * t + start_e, end_e)
 
 def run():
+    # count = 0
     args = parse_args()
     run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
     
@@ -228,7 +230,10 @@ def run():
                     )
 
         #Daniel's Modification
-        if global_step == 200:
+        probability = random.random()
+        if probability <= 0.00005:
+            # count += 1
+        # if global_step == 200:
             model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
             torch.save(q_network.state_dict(), model_path)
 
@@ -242,21 +247,18 @@ def run():
                 run_name=f"{run_name}-eval",
                 Model=QNetwork,
                 device=device,
-                # epsilon=0.05,
                 epsilon=wandb.config.epsilon,
                 capture_video=False
             )
             computed = np.mean(expected_return)
-            print(f"MC Evaluation: {computed}")
-
-            # model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-            model_path = f"results/policy-{round(computed, 1)}.cleanrl_model"
+            model_path = f"policy/epsilon-{wandb.config.epsilon}/performance-{computed:.1f}.cleanrl_model"
 
             if not os.path.exists(model_path):
                 torch.save(q_network.state_dict(), model_path)
             
     envs.close()
     writer.close()
+    # print(count)
 
 if __name__ == "__main__":
-    wandb.agent(sweep_id, function=run, count=1)
+    wandb.agent(sweep_id, function=run, count=4)
