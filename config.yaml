@@ -1,0 +1,9 @@
+program: dqn.py
+method: grid
+name: sweep
+metric:
+  goal: maximize
+  name: eval_return
+parameters:
+  epsilon:
+    values: [0, 0.2, 0.4, 0.8]

@@ -15,6 +15,7 @@ from stable_baselines3.common.buffers import ReplayBuffer
 from torch.utils.tensorboard import SummaryWriter
 
 import wandb
+import yaml
 
 def parse_args():
     # fmt: off
@@ -69,6 +70,8 @@ def parse_args():
         help="timestep to start learning")
     parser.add_argument("--train-frequency", type=int, default=10,
         help="the frequency of training")
+    parser.add_argument("--epsilon", type=float, default=0.5,
+        help="epsilon for evaluation")
     args = parser.parse_args()
     # fmt: on
     return args
@@ -88,17 +91,17 @@ def make_env(env_id, seed, idx, capture_video, run_name):
 
     return thunk
 
-sweep_config = {
-    "method": "grid", # use grid search
-    "metric": {"name": "eval_return", "goal": "maximize"},
-    "parameters": {
-        # "epsilon": {"values": [0.05]}
-        "epsilon": {"values": [0, 0.2, 0.4, 0.8]}
-    }
-}
+# sweep_config = {
+#     "method": "grid", # use grid search
+#     "metric": {"name": "eval_return", "goal": "maximize"},
+#     "parameters": {
+#         # "epsilon": {"values": [0.05]}
+#         "epsilon": {"values": [0, 0.2, 0.4, 0.8]}
+#     }
+# }
 
 # sweep_id = wandb.sweep(sweep_config, project="my-project")
-sweep_id = wandb.sweep(sweep_config, project="parallel-task-10")
+# sweep_id = wandb.sweep(sweep_config, project="parallel-task-10")
 
 
 # ALGO LOGIC: initialize agent here:
@@ -122,19 +125,25 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     return max(slope * t + start_e, end_e)
 
 def run():
+    print("**********Program Starts**********")
     # count = 0
     args = parse_args()
     run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+
+    with open('./config.yaml') as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
     
-    wandb.init(
-        project=args.wandb_project_name,
-        entity=args.wandb_entity,
-        sync_tensorboard=True,
-        config=vars(args),
-        name=run_name,
-        monitor_gym=True,
-        save_code=True,
-    )
+    run = wandb.init(config=config)
+    
+    # wandb.init(
+    #     project=args.wandb_project_name,
+    #     entity=args.wandb_entity,
+    #     sync_tensorboard=True,
+    #     config=vars(args),
+    #     name=run_name,
+    #     monitor_gym=True,
+    #     save_code=True,
+    # )
 
     writer = SummaryWriter(f"runs/{run_name}")
     writer.add_text(
@@ -231,9 +240,11 @@ def run():
 
         #Daniel's Modification
         probability = random.random()
-        if probability <= 0.00005:
+        # if probability <= 0.0001:
             # count += 1
-        # if global_step == 200:
+        if global_step == 200:
+            print("evaluate")
+            print(args.epsilon)
             model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
             torch.save(q_network.state_dict(), model_path)
 
@@ -243,15 +254,16 @@ def run():
                 model_path,
                 make_env,
                 args.env_id,
-                eval_episodes=20000,
+                eval_episodes=10,
                 run_name=f"{run_name}-eval",
                 Model=QNetwork,
                 device=device,
-                epsilon=wandb.config.epsilon,
+                # epsilon=wandb.config.epsilon,
+                epsilon=args.epsilon,
                 capture_video=False
             )
             computed = np.mean(expected_return)
-            model_path = f"policy/epsilon-{wandb.config.epsilon}/performance-{computed:.1f}.cleanrl_model"
+            model_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.1f}_cleanrl_model"
 
             if not os.path.exists(model_path):
                 torch.save(q_network.state_dict(), model_path)
@@ -261,4 +273,4 @@ def run():
     # print(count)
 
 if __name__ == "__main__":
-    wandb.agent(sweep_id, function=run, count=4)
+    run()
