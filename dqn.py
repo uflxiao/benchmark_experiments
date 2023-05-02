@@ -240,9 +240,9 @@ def run():
 
         #Daniel's Modification
         probability = random.random()
-        # if probability <= 0.0001:
+        if probability <= 0.0001:
             # count += 1
-        if global_step == 200:
+        # if global_step == 200:
             print("evaluate")
             print(args.epsilon)
             model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
