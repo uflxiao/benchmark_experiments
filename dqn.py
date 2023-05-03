@@ -1,4 +1,3 @@
-# docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/dqn/#dqnpy
 import argparse
 import os
 import random
@@ -125,7 +124,6 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     return max(slope * t + start_e, end_e)
 
 def run():
-    print("**********Program Starts**********")
     # count = 0
     args = parse_args()
     run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
@@ -133,8 +131,14 @@ def run():
     with open('./config.yaml') as file:
         config = yaml.load(file, Loader=yaml.FullLoader)
     
-    run = wandb.init(config=config)
-    
+    # run = wandb.init(config=config)
+    wandb.init(
+        config=config,
+        sync_tensorboard=True,
+        monitor_gym=True,
+        save_code=True,
+    )
+
     # wandb.init(
     #     project=args.wandb_project_name,
     #     entity=args.wandb_entity,
