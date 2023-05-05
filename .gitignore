@@ -1,4 +1,5 @@
 policy/
+policy_old/
 evals/__pycache__/
 wandb/
 runs/
