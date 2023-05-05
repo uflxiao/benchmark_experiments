@@ -247,18 +247,16 @@ def run():
         if probability <= 0.0001:
             # count += 1
         # if global_step == 200:
-            print("evaluate")
-            print(args.epsilon)
             model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
             torch.save(q_network.state_dict(), model_path)
 
             from evals.dqn_eval import evaluate
-
+            print("**********Evaluation Started**********")
             expected_return = evaluate(
                 model_path,
                 make_env,
                 args.env_id,
-                eval_episodes=10,
+                eval_episodes=20000,
                 run_name=f"{run_name}-eval",
                 Model=QNetwork,
                 device=device,
@@ -266,11 +264,15 @@ def run():
                 epsilon=args.epsilon,
                 capture_video=False
             )
+            print("**********Evaluation Completed**********")
             computed = np.mean(expected_return)
-            model_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.1f}_cleanrl_model"
+            model_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.0f}_cleanrl_model"
 
             if not os.path.exists(model_path):
+                print("**********Policy saving**********")
                 torch.save(q_network.state_dict(), model_path)
+
+            print("**********Policy saved**********")
             
     envs.close()
     writer.close()
