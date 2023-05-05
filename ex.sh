@@ -1,6 +1,5 @@
 #!/bin/bash
 
-for i in {1..10}
-do
-    sbatch start.slurm
+for i in $seq(1 1000); do
+    sbatch start.slurm   &
 done
