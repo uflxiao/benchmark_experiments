@@ -1,5 +1,5 @@
 program: dqn.py
-method: grid
+method: random
 name: sweep
 metric:
   goal: maximize
@@ -7,3 +7,9 @@ metric:
 parameters:
   epsilon:
     values: [0, 0.2, 0.4, 0.8]
+  # x-repeat:
+  #   values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+    # values: [0, 1]
+  # y-repeat:
+  #   values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    # values: [0, 1]

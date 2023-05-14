@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --job-name=mp7sqhre
-#SBATCH --exclude=adriatic[01-06],cheetah01,cheetah02,cheetah03,jaguar01,jaguar02,jaguar04,lotus,ristretto[01-04],titanx[01-03],titanx[04-06],lynx[01-02]
+#SBATCH --job-name=rmsdoj1z
+#SBATCH --exclude=adriatic[01-06],cheetah01,cheetah02,cheetah03,cheetah04,jaguar01,jaguar02,jaguar04,lotus,ristretto[01-04],titanx[01-03],titanx[04-06],lynx[01-02]
 #SBATCH --partition=nolim,main,gnolim,gpu
 #SBATCH --gpus-per-node=0
 #SBATCH --cpus-per-task=4
@@ -10,4 +10,4 @@
 #SBATCH --ntasks 1
 
 # Run python script with a command line argument
-srun wandb agent daniel-xiao/carpole/mp7sqhre
+srun wandb agent daniel-xiao/cartpole/rmsdoj1z

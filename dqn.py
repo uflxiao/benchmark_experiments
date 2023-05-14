@@ -71,6 +71,10 @@ def parse_args():
         help="the frequency of training")
     parser.add_argument("--epsilon", type=float, default=0.5,
         help="epsilon for evaluation")
+    parser.add_argument("--x-repeat", type=int, default=1,
+        help="dummy parameter for repetition")
+    parser.add_argument("--y-repeat", type=int, default=1,
+        help="dummy parameter for repetition")
     args = parser.parse_args()
     # fmt: on
     return args
@@ -161,7 +165,8 @@ def run():
     torch.manual_seed(args.seed)
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
-    device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
+    # device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
+    device = torch.device("cpu")
 
     # env setup
     envs = gym.vector.SyncVectorEnv([make_env(args.env_id, args.seed, 0, args.capture_video, run_name)])
