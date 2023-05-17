@@ -12,6 +12,8 @@ from torch.distributions.normal import Normal
 
 import gymnasium as gym
 
+#debug
+import sys
 
 class Policy_Network(nn.Module):
     """Parametrized Policy Network."""
@@ -168,6 +170,9 @@ if __name__ == "__main__":
         for episode in range(total_num_episodes):
             # gymnasium v26 requires users to set seed while resetting the environment
             obs, info = wrapped_env.reset(seed=seed)
+            # print(wrapped_env.reset(seed=seed))
+            # sys.exit()
+
 
             done = False
             while not done:

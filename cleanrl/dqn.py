@@ -249,7 +249,7 @@ def run():
 
         #Daniel's Modification
         probability = random.random()
-        if probability <= 0.0001:
+        if probability <= 0.0002:
             # count += 1
         # if global_step == 200:
             model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
@@ -261,7 +261,7 @@ def run():
                 model_path,
                 make_env,
                 args.env_id,
-                eval_episodes=20000,
+                eval_episodes=10,
                 run_name=f"{run_name}-eval",
                 Model=QNetwork,
                 device=device,

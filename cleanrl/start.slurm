@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=rmsdoj1z
+#SBATCH --job-name=6hu5tgst
 #SBATCH --exclude=adriatic[01-06],cheetah01,cheetah02,cheetah03,cheetah04,jaguar01,jaguar02,jaguar04,lotus,ristretto[01-04],titanx[01-03],titanx[04-06],lynx[01-02]
 #SBATCH --partition=nolim,main,gnolim,gpu
 #SBATCH --gpus-per-node=0
@@ -10,4 +10,4 @@
 #SBATCH --ntasks 1
 
 # Run python script with a command line argument
-srun wandb agent daniel-xiao/cartpole/rmsdoj1z
+srun wandb agent daniel-xiao/cart-pole/6hu5tgst
