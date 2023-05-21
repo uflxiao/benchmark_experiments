@@ -5,6 +5,8 @@ import gym
 import numpy as np
 import torch
 
+#debug
+import sys
 
 def evaluate(
     model_path: str,

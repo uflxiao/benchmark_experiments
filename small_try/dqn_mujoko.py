@@ -98,7 +98,6 @@ class DQNAgent:
                         next_state_batch = torch.tensor(next_state_batch, dtype=torch.float32)
                         done_batch = torch.tensor(done_batch, dtype=torch.float32).unsqueeze(1)
 
-                        print(action_batch.unsqueeze(1))
                         q_values = self.policy_net(state_batch).gather(1, action_batch.unsqueeze(1))
 
                         next_q_values = self.target_net(next_state_batch).max(1)[0].unsqueeze(1)
@@ -114,6 +113,9 @@ class DQNAgent:
                         self.target_net.load_state_dict(self.policy_net.state_dict())
 
                 if done:
+                        if info:
+                             print(info)
+                             sys.exit()
                         if episode % 100 == 0:
                             print("Episode:", episode, "Total Reward:", total_reward)
                         episode_rewards.append(total_reward) 
