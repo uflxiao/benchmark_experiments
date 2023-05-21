@@ -133,11 +133,8 @@ def run():
     args = parse_args()
     for seed in [1, 2, 3, 5, 8]:
         args.seed = seed
-        # run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
-        unique_id = uuid.uuid4()
-        unique_id_str = str(unique_id.hex)[:5]
-        run_name = f"{args.seed}__{int(time.time())}__{unique_id_str}"
-
+        run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+        
         with open('./config.yaml') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
         
@@ -257,7 +254,10 @@ def run():
             #Daniel's Modification
             probability = random.random()
             if probability <= 0.0002:
-                model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
+                unique_id = uuid.uuid4()
+                unique_id_str = str(unique_id.hex)[:5]
+                # model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
+                model_path = f"runs/{run_name}-{unique_id_str}.cleanrl_model"
                 torch.save(q_network.state_dict(), model_path)
 
                 from evals.dqn_eval import evaluate
@@ -265,7 +265,7 @@ def run():
                     model_path,
                     make_env,
                     args.env_id,
-                    eval_episodes=1000,
+                    eval_episodes=20000,
                     run_name=f"{run_name}-eval",
                     Model=QNetwork,
                     device=device,
@@ -274,25 +274,28 @@ def run():
                     capture_video=False
                 )
                 computed = np.mean(expected_return)
-                model_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.0f}_cleanrl_model"
+                policy_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.0f}_cleanrl_model"
 
-                if not os.path.exists(model_path):
-                    torch.save(q_network.state_dict(), model_path)
-                
-                
+                if not os.path.exists(policy_path):
+                    torch.save(q_network.state_dict(), policy_path)
+                               
         envs.close()
         writer.close()
 
-        count()
+        # count()
         
-def count():
-    dir1 = f'policy/'
-    dir2 = f'runs/'
-    policy_list = os.listdir(dir1)
-    run_list = os.listdir(dir2)
+# def count():
+#     dir1 = f'policy/'
+#     dir2 = f'runs/'
+#     policy_list = os.listdir(dir1)
+#     run_list = os.listdir(dir2)
 
-    num_policy = len(policy_list)
-    num_run = len(run_list)
+#     num_policy = len(policy_list)
+#     num_run = len(run_list)
+
+#     output_path = f"results/policy_count.txt"
+#     file = open(output_path, 'w')
+#     file.write(f'number of policies: {num_policy}, number of runs: {num_run}')
 
     # print("Number of policy:", num_policy)
     # print("Number of files in the directory:", num_run)
