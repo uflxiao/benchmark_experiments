@@ -17,6 +17,7 @@ def evaluate(
     Model: torch.nn.Module,
     device: torch.device = torch.device("cpu"),
     epsilon: float = 0.05,
+    seed: int = 0,
     capture_video: bool = True,
 ):
     envs = gym.vector.SyncVectorEnv([make_env(env_id, 0, 0, capture_video, run_name)])
@@ -24,12 +25,13 @@ def evaluate(
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 
-    obs = envs.reset()
+    obs = envs.reset(seed=seed)
+    # obs = envs.reset(seed=seed)
     episodic_returns = []
     while len(episodic_returns) < eval_episodes:
         if random.random() < epsilon:
             actions = np.array([envs.single_action_space.sample() for _ in range(envs.num_envs)])
-        else:
+        else:   
             q_values = model(torch.Tensor(obs).to(device))
             actions = torch.argmax(q_values, dim=1).cpu().numpy()
         next_obs, _, _, infos = envs.step(actions)

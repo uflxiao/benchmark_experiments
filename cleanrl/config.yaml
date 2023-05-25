@@ -6,5 +6,5 @@ metric:
   name: eval_return
 parameters:
   epsilon:
-    values: [0, 0.2, 0.4, 0.8]
-    # values: [0.2]
+    # values: [0, 0.2, 0.4, 0.8]
+    values: [0.4]

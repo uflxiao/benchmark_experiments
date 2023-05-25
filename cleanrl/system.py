@@ -17,3 +17,19 @@ for filename in os.listdir(directory):
 lst.sort()
 print(lst)
 print(len(lst))
+
+missing = []
+check = lst.pop(0)
+
+for num in lst:
+    check += 1
+    if num == check:
+        continue
+    while num > check:
+        missing.append(check)
+        check += 1 
+
+print(missing)
+
+
+

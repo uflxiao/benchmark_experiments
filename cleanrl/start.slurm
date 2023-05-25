@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=16rihu3w
+#SBATCH --job-name=ugk1w676
 #SBATCH --exclude=adriatic[01-06],cheetah01,cheetah02,cheetah03,cheetah04,jaguar01,jaguar02,jaguar04,lotus,ristretto[01-04],titanx[01-03],titanx[04-06],lynx[01-02]
 #SBATCH --partition=nolim,main,gnolim,gpu
 #SBATCH --gpus-per-node=0
@@ -10,4 +10,4 @@
 #SBATCH --ntasks 1
 
 # Run python script with a command line argument
-srun wandb agent daniel-xiao/offical_run/16rihu3w
+wandb agent --count 2 daniel-xiao/dqn/ugk1w676

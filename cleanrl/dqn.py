@@ -26,7 +26,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp-name", type=str, default=os.path.basename(__file__).rstrip(".py"),
         help="the name of this experiment")
-    parser.add_argument("--seed", type=int, default=1,
+    parser.add_argument("--seed", type=int, default=1, #*****1e6 randint()
         help="seed of the experiment")
     parser.add_argument("--torch-deterministic", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="if toggled, `torch.backends.cudnn.deterministic=False`")
@@ -89,8 +89,8 @@ def make_env(env_id, seed, idx, capture_video, run_name):
             if idx == 0:
                 env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
         # env.seed(seed)
-        # env.action_space.seed(seed)
-        # env.observation_space.seed(seed)
+        env.action_space.seed(seed)
+        env.observation_space.seed(seed)
         return env
 
     return thunk
@@ -131,7 +131,8 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 def run():
     # count = 0
     args = parse_args()
-    for seed in [1, 2, 3, 5, 8]:
+    for seed in [21, 13, 8, 5, 1, 2, 3]:
+    # for seed in [13]:
         args.seed = seed
         run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
         
@@ -204,11 +205,14 @@ def run():
             # TRY NOT TO MODIFY: execute the game and log data.
             next_obs, rewards, dones, infos = envs.step(actions)
 
+            total = 0
+
             # TRY NOT TO MODIFY: record rewards for plotting purposes
             for info in infos:
                 if "episode" in info.keys():
                     # print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
                     writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
+                    total = int(info["episode"]["r"])
                     writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
                     writer.add_scalar("charts/epsilon", epsilon, global_step)
                     break
@@ -253,31 +257,41 @@ def run():
 
             #Daniel's Modification
             probability = random.random()
-            if probability <= 0.0002:
-                unique_id = uuid.uuid4()
-                unique_id_str = str(unique_id.hex)[:5]
-                # model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-                model_path = f"runs/{run_name}-{unique_id_str}.cleanrl_model"
+            # if probability <= 0.0002:
+            if total == 500:
+                # unique_id = uuid.uuid4()
+                # unique_id_str = str(unique_id)[:4]
+                model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
+                # model_path = f"runs/{run_name}/{args.exp_name}-{unique_id_str}.cleanrl_model"
                 torch.save(q_network.state_dict(), model_path)
 
                 from evals.dqn_eval import evaluate
+                # try:
                 expected_return = evaluate(
                     model_path,
                     make_env,
                     args.env_id,
-                    eval_episodes=20000,
+                    eval_episodes=500,
                     run_name=f"{run_name}-eval",
                     Model=QNetwork,
                     device=device,
-                    epsilon=wandb.config.epsilon,
+                    epsilon=0.4,
+                    # epsilon=wandb.config.epsilon,
                     # epsilon=args.epsilon,
+                    seed=args.seed,
                     capture_video=False
                 )
+                # except Exception as e:
+                #     print()
                 computed = np.mean(expected_return)
-                policy_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.0f}_cleanrl_model"
+                print(f'rewards: {total}')
+                print(f'result: {computed}')
 
-                if not os.path.exists(policy_path):
-                    torch.save(q_network.state_dict(), policy_path)
+                # save_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.0f}_cleanrl_model"
+                save_path = f"try/epsilon_{args.epsilon}_performance_{computed:.0f}_cleanrl_model"
+
+                if not os.path.exists(save_path):
+                    torch.save(q_network.state_dict(), save_path)
                                
         envs.close()
         writer.close()
