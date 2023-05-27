@@ -25,7 +25,7 @@ def evaluate(
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 
-    obs = envs.reset(seed=seed)
+    obs = envs.reset()
     # obs = envs.reset(seed=seed)
     episodic_returns = []
     while len(episodic_returns) < eval_episodes:

@@ -16,17 +16,12 @@ from torch.utils.tensorboard import SummaryWriter
 import wandb
 import yaml
 
-#debug
-import sys
-import uuid
-
-
 def parse_args():
     # fmt: off
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp-name", type=str, default=os.path.basename(__file__).rstrip(".py"),
         help="the name of this experiment")
-    parser.add_argument("--seed", type=int, default=1, #*****1e6 randint()
+    parser.add_argument("--seed", type=int, default=random.randint(0, int(1e6)),
         help="seed of the experiment")
     parser.add_argument("--torch-deterministic", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="if toggled, `torch.backends.cudnn.deterministic=False`")
@@ -131,170 +126,168 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 def run():
     # count = 0
     args = parse_args()
-    for seed in [21, 13, 8, 5, 1, 2, 3]:
-    # for seed in [13]:
-        args.seed = seed
-        run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
-        
-        with open('./config.yaml') as file:
-            config = yaml.load(file, Loader=yaml.FullLoader)
-        
-        # run = wandb.init(config=config)
-        wandb.init(
-            config=config,
-            sync_tensorboard=True,
-            monitor_gym=True,
-            save_code=True,
-        )
+    # for seed in [21, 13, 8, 5, 1, 2, 3]:
+    # args.seed = seed
+    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+    
+    with open('./config.yaml') as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+    
+    # run = wandb.init(config=config)
+    wandb.init(
+        config=config,
+        sync_tensorboard=True,
+        monitor_gym=True,
+        save_code=True,
+    )
 
-        # wandb.init(
-        #     project=args.wandb_project_name,
-        #     entity=args.wandb_entity,
-        #     sync_tensorboard=True,
-        #     config=vars(args),
-        #     name=run_name,
-        #     monitor_gym=True,
-        #     save_code=True,
-        # )
+    # wandb.init(
+    #     project=args.wandb_project_name,
+    #     entity=args.wandb_entity,
+    #     sync_tensorboard=True,
+    #     config=vars(args),
+    #     name=run_name,
+    #     monitor_gym=True,
+    #     save_code=True,
+    # )
 
-        writer = SummaryWriter(f"runs/{run_name}")
-        writer.add_text(
-            "hyperparameters",
-            "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
-        )
+    writer = SummaryWriter(f"runs/{run_name}")
+    writer.add_text(
+        "hyperparameters",
+        "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
+    )
 
-        # TRY NOT TO MODIFY: seeding
-        random.seed(args.seed)
-        np.random.seed(args.seed)
-        torch.manual_seed(args.seed)
-        torch.backends.cudnn.deterministic = args.torch_deterministic
+    # TRY NOT TO MODIFY: seeding
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.backends.cudnn.deterministic = args.torch_deterministic
 
-        # device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
-        device = torch.device("cpu")
+    # device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
+    device = torch.device("cpu")
 
-        # env setup
-        envs = gym.vector.SyncVectorEnv([make_env(args.env_id, args.seed, 0, args.capture_video, run_name)])
-        assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
+    # env setup
+    envs = gym.vector.SyncVectorEnv([make_env(args.env_id, args.seed, 0, args.capture_video, run_name)])
+    assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-        q_network = QNetwork(envs).to(device)
-        optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
-        target_network = QNetwork(envs).to(device)
-        target_network.load_state_dict(q_network.state_dict())
+    q_network = QNetwork(envs).to(device)
+    optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
+    target_network = QNetwork(envs).to(device)
+    target_network.load_state_dict(q_network.state_dict())
 
-        rb = ReplayBuffer(
-            args.buffer_size,
-            envs.single_observation_space,
-            envs.single_action_space,
-            device,
-            handle_timeout_termination=True,
-        )
-        
-        start_time = time.time()
+    rb = ReplayBuffer(
+        args.buffer_size,
+        envs.single_observation_space,
+        envs.single_action_space,
+        device,
+        handle_timeout_termination=True,
+    )
+    
+    start_time = time.time()
 
-        # TRY NOT TO MODIFY: start the game
-        obs = envs.reset(seed=args.seed)
-        for global_step in range(args.total_timesteps):
-            # ALGO LOGIC: put action logic here
-            epsilon = linear_schedule(args.start_e, args.end_e, args.exploration_fraction * args.total_timesteps, global_step)
-            if random.random() < epsilon:
-                actions = np.array([envs.single_action_space.sample() for _ in range(envs.num_envs)])
-            else:
-                q_values = q_network(torch.Tensor(obs).to(device))
-                actions = torch.argmax(q_values, dim=1).cpu().numpy()
+    # TRY NOT TO MODIFY: start the game
+    obs = envs.reset(seed=args.seed)
+    for global_step in range(args.total_timesteps):
+        # ALGO LOGIC: put action logic here
+        epsilon = linear_schedule(args.start_e, args.end_e, args.exploration_fraction * args.total_timesteps, global_step)
+        if random.random() < epsilon:
+            actions = np.array([envs.single_action_space.sample() for _ in range(envs.num_envs)])
+        else:
+            q_values = q_network(torch.Tensor(obs).to(device))
+            actions = torch.argmax(q_values, dim=1).cpu().numpy()
 
-            # TRY NOT TO MODIFY: execute the game and log data.
-            next_obs, rewards, dones, infos = envs.step(actions)
+        # TRY NOT TO MODIFY: execute the game and log data.
+        next_obs, rewards, dones, infos = envs.step(actions)
 
-            total = 0
+        # TRY NOT TO MODIFY: record rewards for plotting purposes
+        for info in infos:
+            if "episode" in info.keys():
+                # print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
+                writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
+                total = int(info["episode"]["r"])
+                writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
+                writer.add_scalar("charts/epsilon", epsilon, global_step)
+                break
 
-            # TRY NOT TO MODIFY: record rewards for plotting purposes
-            for info in infos:
-                if "episode" in info.keys():
-                    # print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
-                    writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
-                    total = int(info["episode"]["r"])
-                    writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
-                    writer.add_scalar("charts/epsilon", epsilon, global_step)
-                    break
+        # TRY NOT TO MODIFY: save data to reply buffer; handle `terminal_observation`
+        real_next_obs = next_obs.copy()
+        for idx, d in enumerate(dones):
+            if d:
+                real_next_obs[idx] = infos[idx]["terminal_observation"]
+        rb.add(obs, real_next_obs, actions, rewards, dones, infos)
 
-            # TRY NOT TO MODIFY: save data to reply buffer; handle `terminal_observation`
-            real_next_obs = next_obs.copy()
-            for idx, d in enumerate(dones):
-                if d:
-                    real_next_obs[idx] = infos[idx]["terminal_observation"]
-            rb.add(obs, real_next_obs, actions, rewards, dones, infos)
+        # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
+        obs = next_obs
 
-            # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
-            obs = next_obs
+        # ALGO LOGIC: training.
+        if global_step > args.learning_starts:
+            if global_step % args.train_frequency == 0:
+                data = rb.sample(args.batch_size)
+                with torch.no_grad():
+                    target_max, _ = target_network(data.next_observations).max(dim=1)
+                    td_target = data.rewards.flatten() + args.gamma * target_max * (1 - data.dones.flatten())
+                old_val = q_network(data.observations).gather(1, data.actions).squeeze()
+                loss = F.mse_loss(td_target, old_val)
 
-            # ALGO LOGIC: training.
-            if global_step > args.learning_starts:
-                if global_step % args.train_frequency == 0:
-                    data = rb.sample(args.batch_size)
-                    with torch.no_grad():
-                        target_max, _ = target_network(data.next_observations).max(dim=1)
-                        td_target = data.rewards.flatten() + args.gamma * target_max * (1 - data.dones.flatten())
-                    old_val = q_network(data.observations).gather(1, data.actions).squeeze()
-                    loss = F.mse_loss(td_target, old_val)
+                if global_step % 100 == 0:
+                    writer.add_scalar("losses/td_loss", loss, global_step)
+                    writer.add_scalar("losses/q_values", old_val.mean().item(), global_step)
+                    # print("SPS:", int(global_step / (time.time() - start_time)))
+                    writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
 
-                    if global_step % 100 == 0:
-                        writer.add_scalar("losses/td_loss", loss, global_step)
-                        writer.add_scalar("losses/q_values", old_val.mean().item(), global_step)
-                        # print("SPS:", int(global_step / (time.time() - start_time)))
-                        writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
+                # optimize the model
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
-                    # optimize the model
-                    optimizer.zero_grad()
-                    loss.backward()
-                    optimizer.step()
+            # update target network
+            if global_step % args.target_network_frequency == 0:
+                for target_network_param, q_network_param in zip(target_network.parameters(), q_network.parameters()):
+                    target_network_param.data.copy_(
+                        args.tau * q_network_param.data + (1.0 - args.tau) * target_network_param.data
+                    )
 
-                # update target network
-                if global_step % args.target_network_frequency == 0:
-                    for target_network_param, q_network_param in zip(target_network.parameters(), q_network.parameters()):
-                        target_network_param.data.copy_(
-                            args.tau * q_network_param.data + (1.0 - args.tau) * target_network_param.data
-                        )
+        #Daniel's Modification
+        probability = random.random()
+        if probability <= 0.0002:
+            # unique_id = uuid.uuid4()
+            # unique_id_str = str(unique_id)[:4]
+            model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
+            # model_path = f"runs/{run_name}/{args.exp_name}-{unique_id_str}.cleanrl_model"
+            torch.save(q_network.state_dict(), model_path)
 
-            #Daniel's Modification
-            probability = random.random()
-            # if probability <= 0.0002:
-            if total == 500:
-                # unique_id = uuid.uuid4()
-                # unique_id_str = str(unique_id)[:4]
-                model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-                # model_path = f"runs/{run_name}/{args.exp_name}-{unique_id_str}.cleanrl_model"
-                torch.save(q_network.state_dict(), model_path)
-
-                from evals.dqn_eval import evaluate
-                # try:
-                expected_return = evaluate(
-                    model_path,
-                    make_env,
-                    args.env_id,
-                    eval_episodes=500,
-                    run_name=f"{run_name}-eval",
-                    Model=QNetwork,
-                    device=device,
-                    epsilon=0.4,
-                    # epsilon=wandb.config.epsilon,
-                    # epsilon=args.epsilon,
-                    seed=args.seed,
-                    capture_video=False
-                )
-                # except Exception as e:
-                #     print()
-                computed = np.mean(expected_return)
+            from evals.dqn_eval import evaluate
+            # try:
+            expected_return = evaluate(
+                model_path,
+                make_env,
+                args.env_id,
+                eval_episodes=20000,
+                run_name=f"{run_name}-eval",
+                Model=QNetwork,
+                device=device,
+                epsilon=wandb.config.epsilon,
+                # epsilon=args.epsilon,
+                seed=args.seed,
+                capture_video=False
+            )
+            computed = np.mean(expected_return)
+            if computed >= 300:
                 print(f'rewards: {total}')
                 print(f'result: {computed}')
 
-                # save_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.0f}_cleanrl_model"
-                save_path = f"try/epsilon_{args.epsilon}_performance_{computed:.0f}_cleanrl_model"
+            # save_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.0f}_cleanrl_model"
+            model_path = f"try/epsilon_{args.epsilon}_performance_{computed:.0f}_cleanrl_model"
+            model_path2 = f"final/epsilon_{args.epsilon}_performance_{computed:.0f}_cleanrl_model"
 
-                if not os.path.exists(save_path):
-                    torch.save(q_network.state_dict(), save_path)
-                               
-        envs.close()
-        writer.close()
+            if not os.path.exists(model_path):
+                torch.save(q_network.state_dict(), model_path)
+            
+            if not os.path.exists(model_path2):
+                torch.save(q_network.state_dict(), model_path2)
+                            
+    envs.close()
+    writer.close()
 
         # count()
         
