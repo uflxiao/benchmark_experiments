@@ -4,3 +4,5 @@ evals/__pycache__/
 wandb/
 runs/
 dqn.out
+final/
+try/
