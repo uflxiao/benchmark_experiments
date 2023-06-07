@@ -15,6 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 import wandb
 import yaml
+import sys
 
 def parse_args():
     # fmt: off
@@ -69,7 +70,7 @@ def parse_args():
         help="timestep to start learning")
     parser.add_argument("--train-frequency", type=int, default=10,
         help="the frequency of training")
-    parser.add_argument("--epsilon", type=float, default=0.5,
+    parser.add_argument("--epsilon", type=float, default=0.05,
         help="epsilon for evaluation")
     args = parser.parse_args()
     # fmt: on
@@ -123,6 +124,8 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     slope = (end_e - start_e) / duration
     return max(slope * t + start_e, end_e)
 
+wandb_switch = True
+
 def run():
     # count = 0
     args = parse_args()
@@ -134,12 +137,13 @@ def run():
         config = yaml.load(file, Loader=yaml.FullLoader)
     
     # run = wandb.init(config=config)
-    wandb.init(
-        config=config,
-        sync_tensorboard=True,
-        monitor_gym=True,
-        save_code=True,
-    )
+    if wandb_switch:
+        wandb.init(
+            config=config,
+            sync_tensorboard=True,
+            monitor_gym=True,
+            save_code=True,
+        )
 
     # wandb.init(
     #     project=args.wandb_project_name,
@@ -272,19 +276,12 @@ def run():
                 capture_video=False
             )
             computed = np.mean(expected_return)
-            if computed >= 300:
-                print(f'rewards: {total}')
-                print(f'result: {computed}')
 
             # save_path = f"policy/epsilon_{wandb.config.epsilon}_performance_{computed:.0f}_cleanrl_model"
-            model_path = f"try/epsilon_{args.epsilon}_performance_{computed:.0f}_cleanrl_model"
-            model_path2 = f"final/epsilon_{args.epsilon}_performance_{computed:.0f}_cleanrl_model"
+            model_path = f"policy/epsilon_{args.epsilon}_performance_{computed:.0f}_model"
 
             if not os.path.exists(model_path):
                 torch.save(q_network.state_dict(), model_path)
-            
-            if not os.path.exists(model_path2):
-                torch.save(q_network.state_dict(), model_path2)
                             
     envs.close()
     writer.close()

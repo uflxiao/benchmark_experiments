@@ -1,10 +1,10 @@
 import os
 import re
 
-directory = f'final/'
+directory = f'policy/'
 # lst = [i for i in range(1, 501)]
 # print(lst)
-epsilon = 0.4
+epsilon = 0.0
 
 lst = []
 for filename in os.listdir(directory):
