@@ -2,6 +2,7 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import torch
 
 class PolicyGradient:
     def __init__(self, mdp, policy, alpha) -> None:
@@ -11,11 +12,13 @@ class PolicyGradient:
         self.policy = policy
         #plot
         self.rewards_over_episodes = []
+        #generated policy data
+        self.data = []
 
     """ Generate and store an entire episode trajectory to use to update the policy """
 
     def execute(self, episodes=100):
-        for _ in range(episodes):
+        for i in range(episodes):
             actions = []
             states = []
             rewards = []
@@ -37,6 +40,13 @@ class PolicyGradient:
             self.policy.update(states=states, actions=actions, deltas=deltas)
             #plot
             self.rewards_over_episodes.append(sum(rewards))
+            #generate policy data
+            if i in [100, 850]:
+                policy_path = f"results/policy/pi_{i}"
+                torch.save(self.policy.policy_network.state_dict(), policy_path)
+                # model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
+                # torch.save(q_network.state_dict(), model_path)
+
 
     def calculate_deltas(self, rewards):
         """

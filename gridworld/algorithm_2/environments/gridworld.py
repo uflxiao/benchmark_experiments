@@ -1,7 +1,7 @@
 from collections import defaultdict
 
-from mdp import *
-from rendering_utils import *
+from environments.mdp import *
+from utils.rendering_utils import *
 
 
 class GridWorld(MDP):
@@ -523,7 +523,7 @@ class GridWorld(MDP):
         im = plt.imshow(img, origin="lower")
         plt.title(title)
         #save
-        plt.savefig("grid.png")
+        plt.savefig("./results/grid.png")
         if gif:
             return fig, ax, im
         else:
@@ -880,7 +880,7 @@ class GridWorld(MDP):
         plt.title(title)
         plt.show()
         #save
-        plt.savefig("policy.png")
+        plt.savefig("./results/policy.png")
         return fig
 
 

@@ -1,6 +1,6 @@
-from gridworld import GridWorld
+from environments.gridworld import GridWorld
 from policy_gradient import PolicyGradient
-from deep_nn_policy import DeepNeuralNetworkPolicy
+from utils.deep_nn_policy import DeepNeuralNetworkPolicy
 
 gridworld = GridWorld(width=3, height=3)
 gridworld.visualise()
