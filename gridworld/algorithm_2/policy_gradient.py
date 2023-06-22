@@ -3,9 +3,10 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import torch
+import copy
 
 class PolicyGradient:
-    def __init__(self, mdp, policy, alpha) -> None:
+    def __init__(self, mdp, policy, alpha, policy_e=None) -> None:
         super().__init__()
         self.alpha = alpha  # Learning rate (gradient update step-size)
         self.mdp = mdp
@@ -14,6 +15,7 @@ class PolicyGradient:
         self.rewards_over_episodes = []
         #generated policy data
         self.data = []
+        self.policy_e = policy_e
 
     """ Generate and store an entire episode trajectory to use to update the policy """
 
@@ -44,9 +46,33 @@ class PolicyGradient:
             if i in [100, 850]:
                 policy_path = f"results/policy/pi_{i}"
                 torch.save(self.policy.policy_network.state_dict(), policy_path)
-                # model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-                # torch.save(q_network.state_dict(), model_path)
 
+    def search(self, episodes=100):
+        lst_d = []
+        # self.policy.policy_network = copy.deepcopy(self.policy_e.policy_network)
+        for _ in range(episodes):
+            actions = []
+            states = []
+            rewards = []
+
+            state = self.mdp.get_initial_state()
+            acc_rho = 1
+            while not self.mdp.is_terminal(state):
+                action = self.policy.select_action(state)
+                next_state, reward = self.mdp.execute(state, action)
+
+                states.append(state)
+                actions.append(action)
+                print(reward)
+                acc_rho = acc_rho * self.policy_e.get_probability(state, action)/self.policy.get_probability(state, action)
+                rewards.append(reward * acc_rho)
+
+                state = next_state
+                
+            lst_d.append(sum(rewards)) 
+            self.policy.update(states=states, actions=actions, deltas=[r ** 2 for r in rewards])
+        
+        print(sum(lst_d)/len(lst_d))
 
     def calculate_deltas(self, rewards):
         """

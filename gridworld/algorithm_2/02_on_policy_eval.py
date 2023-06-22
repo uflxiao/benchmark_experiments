@@ -1,4 +1,3 @@
-import pickle
 from environments.gridworld import GridWorld
 from utils.deep_nn_policy import DeepNeuralNetworkPolicy
 import torch
@@ -10,7 +9,7 @@ policy = DeepNeuralNetworkPolicy(
 )
 
 
-model_path = f"results/policy/pi_850"
+model_path = f"results/policy/pi_100"
 state_dict  = torch.load(model_path)
 policy.policy_network.load_state_dict(state_dict)
 
