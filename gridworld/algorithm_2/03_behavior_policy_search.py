@@ -25,25 +25,6 @@ policy.policy_network.load_state_dict(theta)
 
 policy_gradient = PolicyGradient(env, policy, 0.1, policy_e).search()
 
-# lst_d = []
-
-# for i in range(100):
-#     policy.policy_network = theta
-#     state = env.get_initial_state()
-
-#     acc_reward = 0
-#     acc_rho = 1
-
-
-#     while not env.is_terminal(state):
-#         action = policy.select_action(state)
-#         next_state, reward = env.execute(state, action)
-#         acc_rho = acc_rho * policy_e.get_probability(state, action)/policy.get_probability(state, action) 
-#         acc_reward += reward * acc_rho
-
-#         state = next_state
-
-#     lst_d.append(acc_reward)
 
 
 
