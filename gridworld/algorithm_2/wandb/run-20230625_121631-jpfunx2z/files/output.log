@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/u/zx8yz/benchmark_experiments/gridworld/algorithm_2/02_on_policy_eval.py", line 14, in <module>
-    env_size = config.env_size
-AttributeError: 'dict' object has no attribute 'env_size'

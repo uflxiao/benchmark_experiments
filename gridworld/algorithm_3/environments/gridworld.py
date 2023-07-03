@@ -880,10 +880,7 @@ class GridWorld(MDP):
         plt.title(title)
         plt.show()
         #save
-        if title:
-            plt.savefig(f"./results/policy_{title}.png")
-        else:
-            plt.savefig(f"./results/policy.png")
+        plt.savefig("./results/policy.png")
         return fig
 
 

@@ -3,10 +3,14 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import torch
-import wandb
+from utils.deep_nn_policy import DeepNeuralNetworkPolicy
+
+#debug
+import sys
+
 
 class PolicyGradient:
-    def __init__(self, mdp, policy, alpha, policy_e=None) -> None:
+    def __init__(self, mdp, policy, alpha, policy_e=None, data=[]) -> None:
         super().__init__()
         self.alpha = alpha  # Learning rate (gradient update step-size)
         self.mdp = mdp
@@ -14,7 +18,7 @@ class PolicyGradient:
         #plot
         self.rewards_over_episodes = []
         #generated policy data
-        self.data = []
+        self.data = data
         self.policy_e = policy_e
 
     """ Generate and store an entire episode trajectory to use to update the policy """
@@ -42,43 +46,50 @@ class PolicyGradient:
             self.policy.update(states=states, actions=actions, deltas=deltas)
             #plot
             self.rewards_over_episodes.append(sum(rewards))
-            wandb.log({"episodes": i})
             #generate policy data
             if i in [100, 850]:
                 policy_path = f"results/policy/pi_{i}"
                 torch.save(self.policy.policy_network.state_dict(), policy_path)
-                gridworld_image = self.mdp.visualise_stochastic_policy(self.policy, title=f"{i}")
 
-    def search(self, episodes=100):
-        lst_d = []
-        # self.policy.policy_network = copy.deepcopy(self.policy_e.policy_network)
+    def generate(self, episodes=100):
+        k = sum([len(x["rewards"]) for x in self.data])
+        grad_loss = 0
+
+        for i in range(len(self.data)):
+            s = self.data[i]["states"]
+            a = self.data[i]["actions"]
+
+            grad_loss += 1/k * self.policy_e.grad_log(s, a)
+
+        trajectory = self.data
         for i in range(episodes):
-            actions = []
-            states = []
-            rewards = []
+            d = {"states":[], "actions": [], "rewards": []}
 
             state = self.mdp.get_initial_state()
-            acc_rho = 1
+
             while not self.mdp.is_terminal(state):
+                new = DeepNeuralNetworkPolicy(
+                    self.mdp, state_space=len(self.mdp.get_initial_state()), action_space=4
+                )
+
+                new.policy_network.load_state_dict(self.policy_e.policy_network.state_dict().copy())
+                new.compute_loss(grad_loss * 100)
+                self.policy.policy_network.load_state_dict(new.policy_network.state_dict().copy())
+
                 action = self.policy.select_action(state)
                 next_state, reward = self.mdp.execute(state, action)
 
-                states.append(state)
-                actions.append(action)
-                acc_rho = acc_rho * self.policy_e.get_probability(state, action)/self.policy.get_probability(state, action)
-                # rewards.append(reward * acc_rho)
-                # if i % 100 == 0:
-                #     print(reward)
-                rewards.append(reward)
-                state = next_state
+                d["states"].append(state)
+                d["actions"].append(action)
+                d["rewards"].append(reward)
                 
-            lst_d.append(sum(rewards) * acc_rho)
-            if i % 100 == 0:
-                print(sum(lst_d)/len(lst_d))
-            wandb.log({"estimate": sum(lst_d)/len(lst_d), "episodes": i}) 
-            self.policy.update(states=states, actions=actions, deltas=lst_d[-1] ** 2)
-        
-        # print(sum(lst_d)/len(lst_d))
+                grad_loss = k/(k+1) * grad_loss + 1/(k+1) * self.policy_e.grad_log(state, action)
+                k += 1
+                state = next_state
+
+            trajectory.append(d)
+            
+        return trajectory
 
     def calculate_deltas(self, rewards):
         """

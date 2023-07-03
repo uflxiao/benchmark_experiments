@@ -1,0 +1,13 @@
+program: 01_policy_prepare.py
+name: 01_policy_prepare
+project: 01_policy_prepare
+description: 01_policy_prepare
+method: grid
+metric:
+  goal: minimize
+  name: policy_prepare
+parameters:
+  env_size: 
+    values: [5]
+  num_train_episode:
+    values: [1000]

@@ -1,7 +1,7 @@
-program: 02_on_policy_eval.py
-name: 02_on_policy_eval
-project: 02_on_policy_eval
-description: 02_on_policy_eval
+program: 03_behavior_policy_search.py
+name: 03_bpg_eval
+project: 03_bpg_eval
+description: 03_bpg_eval
 method: grid
 metric:
   goal: minimize
