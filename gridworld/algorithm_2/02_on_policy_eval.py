@@ -33,7 +33,6 @@ policy.policy_network.load_state_dict(state_dict)
 
 lst_v = []
 lst_est = []
-count = 0
 
 for i in range(num_training_episode):
     state = env.get_initial_state()
@@ -43,9 +42,6 @@ for i in range(num_training_episode):
     while not env.is_terminal(state):
         action = policy.select_action(state)
         next_state, reward = env.execute(state, action)
-        if reward == -1:
-            count += 1
-            print(count)
 
         acc_rho = acc_rho * policy.get_probability(state, action)/policy.get_probability(state, action) 
         acc_reward += reward * acc_rho

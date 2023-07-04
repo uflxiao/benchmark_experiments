@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=por77zmq
+#SBATCH --job-name=s1jroh8k
 #SBATCH --exclude=adriatic[01-06],cheetah01,cheetah02,cheetah03,cheetah04,jaguar01,jaguar02,jaguar04,lotus,titanx[01-03],titanx[04-06],lynx[01-02]
 #SBATCH --partition=nolim,main,gnolim,gpu
 #SBATCH --gpus-per-node=0
@@ -11,4 +11,4 @@
 
 # Run python script with a command line argument
 # srun python test.py $SLURM_ARRAY_TASK_ID
-srun wandb agent daniel-xiao/03_bpg_eval/por77zmq
+srun wandb agent daniel-xiao/03_bpg_eval/s1jroh8k

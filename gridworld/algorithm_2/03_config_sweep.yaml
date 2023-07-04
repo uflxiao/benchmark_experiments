@@ -8,9 +8,9 @@ metric:
   name: ground_truth_value_error
 parameters:
   env_size: 
-    values: [3]
+    values: [5]
     # values: [5, 10, 20]
   policy_id:
     values: [850]
   num_train_episode:
-    values: [10000]
+    values: [1000]
