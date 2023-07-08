@@ -38,7 +38,8 @@ policy = DeepNeuralNetworkPolicy(
 
 
 policy_e.policy_network.load_state_dict(theta_e)
-policy.policy_network.load_state_dict(theta)
+# policy.policy_network.load_state_dict(theta)
+policy.policy_network.load_state_dict(policy_e.state_dict().copy())
 
 policy_gradient = PolicyGradient(env, policy, 0.1, policy_e).search(num_training_episode)
 
