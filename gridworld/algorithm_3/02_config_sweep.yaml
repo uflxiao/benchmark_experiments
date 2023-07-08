@@ -1,0 +1,17 @@
+program: 02_data_generate.py
+name: 02_data_generate
+project: 02_data_generate
+description: 02_data_generate
+method: grid
+metric:
+  goal: minimize
+  name: ground_truth_value_error
+parameters:
+  env_size: 
+    values: [5]
+  policy_id:
+    values: [850]
+  num_train_episode:
+    values: [5000]
+  repeat:
+    values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]

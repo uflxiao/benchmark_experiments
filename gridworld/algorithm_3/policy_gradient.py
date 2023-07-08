@@ -62,6 +62,7 @@ class PolicyGradient:
             grad_loss += 1/k * self.policy_e.grad_log(s, a)
 
         trajectory = self.data
+        # trajectory = []
         for i in range(episodes):
             d = {"states":[], "actions": [], "rewards": []}
 
@@ -73,7 +74,7 @@ class PolicyGradient:
                 )
 
                 new.policy_network.load_state_dict(self.policy_e.policy_network.state_dict().copy())
-                new.compute_loss(grad_loss * 100)
+                new.compute_loss(grad_loss * 10)
                 self.policy.policy_network.load_state_dict(new.policy_network.state_dict().copy())
 
                 action = self.policy.select_action(state)
