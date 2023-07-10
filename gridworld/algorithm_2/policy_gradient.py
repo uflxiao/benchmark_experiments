@@ -44,7 +44,7 @@ class PolicyGradient:
             self.rewards_over_episodes.append(sum(rewards))
             wandb.log({"episodes": i})
             #generate policy data
-            if i in [100, 850]:
+            if i % 5 == 0:
                 policy_path = f"results/policy/pi_{i}"
                 torch.save(self.policy.policy_network.state_dict(), policy_path)
                 gridworld_image = self.mdp.visualise_stochastic_policy(self.policy, title=f"{i}")
