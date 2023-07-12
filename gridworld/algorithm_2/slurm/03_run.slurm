@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=0k005411
+#SBATCH --job-name=ab7ztevi
 #SBATCH --exclude=adriatic[01-06],cheetah01,cheetah02,cheetah03,cheetah04,jaguar01,jaguar02,jaguar04,lotus,titanx[01-03],titanx[04-06],lynx[01-02]
 #SBATCH --partition=nolim,main,gnolim,gpu
 #SBATCH --gpus-per-node=0
@@ -11,4 +11,4 @@
 
 # Run python script with a command line argument
 # srun python test.py $SLURM_ARRAY_TASK_ID
-srun wandb agent daniel-xiao/algorithm_2_mod/0k005411
+srun wandb agent daniel-xiao/03_bps/ab7ztevi

@@ -74,7 +74,7 @@ class PolicyGradient:
                 )
 
                 new.policy_network.load_state_dict(self.policy_e.policy_network.state_dict().copy())
-                new.compute_loss(grad_loss * 10)
+                new.compute_loss(grad_loss * 20)
                 self.policy.policy_network.load_state_dict(new.policy_network.state_dict().copy())
 
                 action = self.policy.select_action(state)
